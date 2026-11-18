@@ -111,8 +111,10 @@
       : locali.length + ' locali dove i social si spengono. Goditi la compagnia.';
     elenco();
     // L'elenco occupa spazio: la mappa deve ricalcolare la sua misura prima di inquadrare i locali.
-    map.invalidateSize();
-    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+    requestAnimationFrame(function () {
+      map.invalidateSize({ animate: false });
+      if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15, animate: false });
+    });
   }
 
   function elenco() {
@@ -146,8 +148,8 @@
     if (meMarker) meMarker.setLatLng([me.lat, me.lon]);
     else meMarker = L.marker([me.lat, me.lon], { icon: icon, title: 'Sei qui' }).addTo(map);
     elenco();
-    map.invalidateSize();
-    if (centra) map.setView([me.lat, me.lon], 15);
+    map.invalidateSize({ animate: false });
+    if (centra) map.setView([me.lat, me.lon], 15, { animate: false });
   }
 
   document.getElementById('dove').addEventListener('click', function () {
