@@ -38,7 +38,7 @@
   function disegna() {
     strati.clearLayers(); pins = {};
     locali.forEach(function (v) {
-      L.circle([v.lat, v.lon], { radius: v.raggio || 60, className: 'zona', fillOpacity: 1, opacity: 1, interactive: false }).addTo(strati);
+      L.circle([v.lat, v.lon], { radius: v.raggio || 30, className: 'zona', fillOpacity: 1, opacity: 1, interactive: false }).addTo(strati);
       pins[v.id] = L.marker([v.lat, v.lon], { icon: icona(false), title: v.nome })
         .on('click', function () { seleziona(v.id, true); }).addTo(strati);
     });
@@ -86,7 +86,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('#righe .riga'), function (r) { r.classList.toggle('on', r.dataset.id === id); });
     var v = locale(id);
     if (!v) return;
-    var d = dist(v), r = v.raggio || 60;
+    var d = dist(v), r = v.raggio || 30;
     $('s-area').textContent = area(v) + (d != null ? ' · a circa ' + fmt(d) + ' da te' : '');
     $('s-nome').textContent = v.nome;
     $('s-raggio').textContent = 'Zona social free nel raggio di ' + r + ' m dal locale.';

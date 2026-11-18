@@ -8,7 +8,7 @@
       "indirizzo": "Piazza di Santa Maria in Trastevere, Roma",
       "lat": 41.88945,
       "lon": 12.46975,
-      "raggio": 60,
+      "raggio": 30,
       "esempio": true
     },
     {
@@ -18,7 +18,7 @@
       "indirizzo": "Piazza della Madonna dei Monti, Roma",
       "lat": 41.89535,
       "lon": 12.49255,
-      "raggio": 50,
+      "raggio": 30,
       "esempio": true
     },
     {
@@ -28,7 +28,7 @@
       "indirizzo": "Via del Pigneto, Roma",
       "lat": 41.88870,
       "lon": 12.52950,
-      "raggio": 60,
+      "raggio": 30,
       "esempio": true
     },
     {
@@ -38,7 +38,7 @@
       "indirizzo": "Piazza Testaccio, Roma",
       "lat": 41.87680,
       "lon": 12.47570,
-      "raggio": 70,
+      "raggio": 30,
       "esempio": true
     },
     {
@@ -48,7 +48,7 @@
       "indirizzo": "Piazza dell'Immacolata, San Lorenzo, Roma",
       "lat": 41.89870,
       "lon": 12.51570,
-      "raggio": 50,
+      "raggio": 30,
       "esempio": true
     }
   ]
