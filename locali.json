@@ -3,6 +3,7 @@
   "locali": [
     {
       "id": "esempio-trastevere",
+      "zona": "Trastevere",
       "nome": "Osteria del Ponte (esempio)",
       "indirizzo": "Piazza di Santa Maria in Trastevere, Roma",
       "lat": 41.88945,
@@ -12,6 +13,7 @@
     },
     {
       "id": "esempio-monti",
+      "zona": "Monti",
       "nome": "Bar della Fontana (esempio)",
       "indirizzo": "Piazza della Madonna dei Monti, Roma",
       "lat": 41.89535,
@@ -21,6 +23,7 @@
     },
     {
       "id": "esempio-pigneto",
+      "zona": "Pigneto",
       "nome": "Vermuteria Pigneto (esempio)",
       "indirizzo": "Via del Pigneto, Roma",
       "lat": 41.88870,
@@ -30,6 +33,7 @@
     },
     {
       "id": "esempio-testaccio",
+      "zona": "Testaccio",
       "nome": "Circolo Testaccio (esempio)",
       "indirizzo": "Piazza Testaccio, Roma",
       "lat": 41.87680,
@@ -39,6 +43,7 @@
     },
     {
       "id": "esempio-sanlorenzo",
+      "zona": "San Lorenzo",
       "nome": "Pub Il Portico (esempio)",
       "indirizzo": "Piazza dell'Immacolata, San Lorenzo, Roma",
       "lat": 41.89870,
