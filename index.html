@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Zone franche</title>
+<meta name="description" content="I locali dove i social si spengono: mappa delle zone franche di Blocca Social.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --verde: #1E8449;
+    --verde-chiaro: #E8F5EC;
+    --rosso: #C0392B;
+    --testo: #1d1d1f;
+    --grigio: #6b6b70;
+    --sfondo: #ffffff;
+    --bordo: #e6e6e9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--sfondo); color: var(--testo);
+    font-family: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { padding: 14px 16px 10px; border-bottom: 1px solid var(--bordo); }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  header p { margin: 2px 0 0; color: var(--grigio); font-size: 14px; }
+  #map { flex: 1 1 auto; min-height: 240px; }
+  #lista { flex: 0 0 auto; max-height: 38vh; overflow-y: auto; border-top: 1px solid var(--bordo); }
+  .riga { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--bordo);
+    cursor: pointer; background: none; border-left: 0; border-right: 0; border-top: 0; width: 100%; text-align: left;
+    font: inherit; color: inherit; }
+  .riga:hover, .riga:focus-visible { background: var(--verde-chiaro); outline: none; }
+  .pallino { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; background: var(--verde);
+    box-shadow: 0 0 0 4px var(--verde-chiaro); }
+  .info { flex: 1 1 auto; min-width: 0; }
+  .nome { font-weight: 600; font-size: 15px; }
+  .ind { color: var(--grigio); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dist { flex: 0 0 auto; color: var(--grigio); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; color: var(--grigio); border: 1px solid var(--bordo);
+    border-radius: 999px; padding: 0 6px; margin-left: 6px; vertical-align: 1px; }
+  .vuoto { padding: 16px; color: var(--grigio); font-size: 14px; }
+  #dove { position: absolute; z-index: 500; right: 12px; top: 12px; border: 1px solid var(--bordo); background: #fff;
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.12); cursor: pointer; }
+  .mappa-box { position: relative; flex: 1 1 auto; display: flex; }
+  .mappa-box #map { flex: 1; }
+  .leaflet-popup-content { font-size: 14px; line-height: 1.4; }
+  .leaflet-popup-content strong { font-size: 15px; }
+  .me { width: 16px; height: 16px; border-radius: 50%; background: #2a7de1; border: 3px solid #fff; box-shadow: 0 0 0 2px rgba(42,125,225,.35); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Zone franche</h1>
+  <p id="sotto">I locali dove i social si spengono. Goditi la compagnia.</p>
+</header>
+<div class="mappa-box">
+  <div id="map" role="application" aria-label="Mappa delle zone franche"></div>
+  <button id="dove" type="button">📍 Dove sono</button>
+</div>
+<div id="lista" aria-label="Elenco dei locali"></div>
+
+<script>
+(function () {
+  var map = L.map('map', { zoomControl: true }).setView([41.8925, 12.4950], 13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  var locali = [];
+  var cerchi = {};
+  var me = null, meMarker = null;
+  var inApp = typeof window.Android !== 'undefined';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function distanza(a, b) {
+    var R = 6371000, r = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+
+  function fmt(m) {
+    return m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1).replace('.', ',') + ' km';
+  }
+
+  function disegna() {
+    var bounds = [];
+    locali.forEach(function (l) {
+      var c = L.circle([l.lat, l.lon], {
+        radius: l.raggio || 60, color: '#1E8449', weight: 2, fillColor: '#1E8449', fillOpacity: 0.22
+      }).addTo(map);
+      c.bindPopup('<strong>' + esc(l.nome) + '</strong><br>' + esc(l.indirizzo) +
+        '<br><span style="color:#1E8449">Zona franca: qui i social si bloccano nel raggio di ' + (l.raggio || 60) + ' m.</span>');
+      cerchi[l.id] = c;
+      bounds.push([l.lat, l.lon]);
+    });
+    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+    document.getElementById('sotto').textContent = locali.length === 1
+      ? '1 locale dove i social si spengono. Goditi la compagnia.'
+      : locali.length + ' locali dove i social si spengono. Goditi la compagnia.';
+    elenco();
+  }
+
+  function elenco() {
+    var box = document.getElementById('lista');
+    box.innerHTML = '';
+    if (!locali.length) {
+      box.innerHTML = '<div class="vuoto">Nessun locale aderente per ora.</div>';
+      return;
+    }
+    var righe = locali.map(function (l) { return { l: l, d: me ? distanza(me, l) : null }; });
+    if (me) righe.sort(function (a, b) { return a.d - b.d; });
+    righe.forEach(function (r) {
+      var b = document.createElement('button');
+      b.className = 'riga';
+      b.type = 'button';
+      b.innerHTML = '<span class="pallino"></span><span class="info"><div class="nome">' + esc(r.l.nome) +
+        (r.l.esempio ? '<span class="badge">esempio</span>' : '') + '</div><div class="ind">' + esc(r.l.indirizzo) +
+        '</div></span>' + (r.d != null ? '<span class="dist">' + fmt(r.d) + '</span>' : '');
+      b.addEventListener('click', function () {
+        map.flyTo([r.l.lat, r.l.lon], 17, { duration: 0.6 });
+        cerchi[r.l.id].openPopup();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function mostraMe(pos, centra) {
+    me = pos;
+    var icon = L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
+    if (meMarker) meMarker.setLatLng([me.lat, me.lon]);
+    else meMarker = L.marker([me.lat, me.lon], { icon: icon, title: 'Sei qui' }).addTo(map);
+    if (centra) map.setView([me.lat, me.lon], 15);
+    elenco();
+  }
+
+  document.getElementById('dove').addEventListener('click', function () {
+    if (inApp) {
+      var p = JSON.parse(window.Android.getPosizione() || 'null');
+      if (p) mostraMe(p, true);
+      else alert('Posizione non disponibile. Attiva il blocco nelle zone franche e la localizzazione.');
+      return;
+    }
+    if (!navigator.geolocation) return alert('Il tuo browser non condivide la posizione.');
+    navigator.geolocation.getCurrentPosition(function (p) {
+      mostraMe({ lat: p.coords.latitude, lon: p.coords.longitude }, true);
+    }, function () { alert('Non riesco a leggere la posizione.'); }, { enableHighAccuracy: true, timeout: 10000 });
+  });
+
+  if (inApp) {
+    locali = (JSON.parse(window.Android.getLocali()) || {}).locali || [];
+    disegna();
+    var p = JSON.parse(window.Android.getPosizione() || 'null');
+    if (p) mostraMe(p, false);
+  } else {
+    fetch('locali.json', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { locali = d.locali || []; disegna(); })
+      .catch(function () {
+        document.getElementById('lista').innerHTML = '<div class="vuoto">Elenco dei locali non disponibile al momento.</div>';
+      });
+  }
+})();
+</script>
+</body>
+</html>
