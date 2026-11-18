@@ -93,19 +93,26 @@
   function disegna() {
     var bounds = [];
     locali.forEach(function (l) {
-      var c = L.circle([l.lat, l.lon], {
+      var popup = '<strong>' + esc(l.nome) + '</strong><br>' + esc(l.indirizzo) +
+        '<br><span style="color:#1E8449">Zona franca: qui i social si bloccano nel raggio di ' + (l.raggio || 60) + ' m.</span>';
+      // L'area reale della zona franca…
+      L.circle([l.lat, l.lon], {
         radius: l.raggio || 60, color: '#1E8449', weight: 2, fillColor: '#1E8449', fillOpacity: 0.22
-      }).addTo(map);
-      c.bindPopup('<strong>' + esc(l.nome) + '</strong><br>' + esc(l.indirizzo) +
-        '<br><span style="color:#1E8449">Zona franca: qui i social si bloccano nel raggio di ' + (l.raggio || 60) + ' m.</span>');
-      cerchi[l.id] = c;
+      }).addTo(map).bindPopup(popup);
+      // …e un punto sempre visibile, anche da lontano.
+      var pin = L.circleMarker([l.lat, l.lon], {
+        radius: 8, color: '#ffffff', weight: 3, fillColor: '#1E8449', fillOpacity: 1
+      }).addTo(map).bindPopup(popup);
+      cerchi[l.id] = pin;
       bounds.push([l.lat, l.lon]);
     });
-    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
     document.getElementById('sotto').textContent = locali.length === 1
       ? '1 locale dove i social si spengono. Goditi la compagnia.'
       : locali.length + ' locali dove i social si spengono. Goditi la compagnia.';
     elenco();
+    // L'elenco occupa spazio: la mappa deve ricalcolare la sua misura prima di inquadrare i locali.
+    map.invalidateSize();
+    if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
   }
 
   function elenco() {
@@ -121,8 +128,9 @@
       var b = document.createElement('button');
       b.className = 'riga';
       b.type = 'button';
+      var nomeEsempio = /\(esempio\)/i.test(r.l.nome);
       b.innerHTML = '<span class="pallino"></span><span class="info"><div class="nome">' + esc(r.l.nome) +
-        (r.l.esempio ? '<span class="badge">esempio</span>' : '') + '</div><div class="ind">' + esc(r.l.indirizzo) +
+        (r.l.esempio && !nomeEsempio ? '<span class="badge">esempio</span>' : '') + '</div><div class="ind">' + esc(r.l.indirizzo) +
         '</div></span>' + (r.d != null ? '<span class="dist">' + fmt(r.d) + '</span>' : '');
       b.addEventListener('click', function () {
         map.flyTo([r.l.lat, r.l.lon], 17, { duration: 0.6 });
@@ -137,8 +145,9 @@
     var icon = L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [22, 22], iconAnchor: [11, 11] });
     if (meMarker) meMarker.setLatLng([me.lat, me.lon]);
     else meMarker = L.marker([me.lat, me.lon], { icon: icon, title: 'Sei qui' }).addTo(map);
-    if (centra) map.setView([me.lat, me.lon], 15);
     elenco();
+    map.invalidateSize();
+    if (centra) map.setView([me.lat, me.lon], 15);
   }
 
   document.getElementById('dove').addEventListener('click', function () {
