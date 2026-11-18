@@ -1,6 +1,6 @@
-# Zone franche
+# Zone social free
 
-L'elenco dei locali che aderiscono a **Blocca Social**: quando una persona con l'app (e con il "blocco nelle zone franche" attivo) entra nel raggio di uno di questi locali, i social sul suo telefono si bloccano.
+L'elenco dei locali che aderiscono a **Blocca Social**: quando una persona con l'app (e con il "blocco nei locali" attivo) entra nel raggio di uno di questi locali, i social sul suo telefono si bloccano.
 
 - **Mappa pubblica:** https://albeerto-demo.github.io/zone-franche/
 - **Elenco usato dalle app:** [`locali.json`](locali.json). Le app lo riscaricano da sole ogni poche ore, senza bisogno di reinstallare.
@@ -11,6 +11,7 @@ L'elenco dei locali che aderiscono a **Blocca Social**: quando una persona con l
 2. Copia uno dei blocchi `{ ... }` e cambia i valori:
    - `id`: un nome breve senza spazi, unico (es. `bar-roma-centro`)
    - `nome`, `indirizzo`: come vuoi che appaiano sulla mappa
+   - `zona`: il quartiere (es. `Monti`), mostrato sotto il nome
    - `lat`, `lon`: la posizione. Su Google Maps fai clic destro sul locale: il primo numero è `lat`, il secondo `lon`
    - `raggio`: quanti metri intorno al locale vale il blocco (consigliato 40–80)
    - togli la riga `"esempio": true`
